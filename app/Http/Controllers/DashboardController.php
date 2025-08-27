@@ -7,7 +7,7 @@ use App\Models\Lab;
 use App\Models\LoanRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+
 
 class DashboardController extends Controller
 {
@@ -23,7 +23,7 @@ class DashboardController extends Controller
         $chartData = $this->getChartData($user, $role);
         $recentActivity = $this->getRecentActivity($user, $role);
 
-        return Inertia::render('dashboard', [
+        return view('dashboard', [
             'user' => $user->load('role'),
             'role' => $role,
             'stats' => $stats,

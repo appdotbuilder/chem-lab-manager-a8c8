@@ -4,22 +4,37 @@ namespace App\Http\Controllers;
 
 use App\Models\Lab;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+
 
 class LabController extends Controller
 {
     /**
      * Display a listing of the labs.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $labs = Lab::with(['headOfLab', 'laboran', 'equipment' => function ($query) {
+        $query = Lab::with(['headOfLab', 'laboran', 'equipment' => function ($query) {
             $query->where('is_active', true);
-        }])
-        ->where('is_active', true)
-        ->paginate(12);
+        }])->where('is_active', true);
 
-        return Inertia::render('labs/index', [
+        // Apply search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('location', 'like', "%{$search}%");
+            });
+        }
+
+        // Add equipment count
+        $query->withCount('equipment');
+
+        $labs = $query->paginate(12)->withQueryString();
+
+        // Equipment count is already loaded via withCount
+
+        return view('labs.index', [
             'labs' => $labs
         ]);
     }
@@ -50,7 +65,7 @@ class LabController extends Controller
             'damaged' => $lab->equipment->where('status', 'damaged')->count(),
         ];
 
-        return Inertia::render('labs/show', [
+        return view('labs.show', [
             'lab' => $lab,
             'equipmentByCategory' => $equipmentByCategory,
             'equipmentStats' => $equipmentStats

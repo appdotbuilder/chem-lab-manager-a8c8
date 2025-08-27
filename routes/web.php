@@ -3,8 +3,9 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\LabController;
+use App\Http\Controllers\LanguageController;
+use App\Http\Middleware\HandleLocale;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/health-check', function () {
     return response()->json([
@@ -13,21 +14,27 @@ Route::get('/health-check', function () {
     ]);
 })->name('health-check');
 
-// ChemLab welcome page
-Route::get('/', function () {
-    return Inertia::render('welcome');
-})->name('home');
+// Apply locale middleware to web routes
+Route::middleware([HandleLocale::class])->group(function () {
+    // Language switching
+    Route::patch('/language/{locale}', [LanguageController::class, 'update'])->name('language.change');
 
-// Public lab information
-Route::get('/labs', [LabController::class, 'index'])->name('labs.index');
-Route::get('/labs/{lab}', [LabController::class, 'show'])->name('labs.show');
+    // ChemLab welcome page
+    Route::get('/', function () {
+        return view('welcome');
+    })->name('home');
 
-// Public equipment browsing
-Route::get('/equipment', [EquipmentController::class, 'index'])->name('equipment.index');
-Route::get('/equipment/{equipment}', [EquipmentController::class, 'show'])->name('equipment.show');
+    // Public lab information
+    Route::get('/labs', [LabController::class, 'index'])->name('labs.index');
+    Route::get('/labs/{lab}', [LabController::class, 'show'])->name('labs.show');
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Public equipment browsing
+    Route::get('/equipment', [EquipmentController::class, 'index'])->name('equipment.index');
+    Route::get('/equipment/{equipment}', [EquipmentController::class, 'show'])->name('equipment.show');
+
+    Route::middleware(['auth', 'verified'])->group(function () {
+        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    });
 });
 
 require __DIR__.'/settings.php';

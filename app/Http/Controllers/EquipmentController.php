@@ -6,7 +6,7 @@ use App\Models\Equipment;
 use App\Models\EquipmentCategory;
 use App\Models\Lab;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+
 
 class EquipmentController extends Controller
 {
@@ -56,7 +56,7 @@ class EquipmentController extends Controller
         $categories = EquipmentCategory::where('is_active', true)->get(['id', 'name']);
         $labs = Lab::where('is_active', true)->get(['id', 'name']);
 
-        return Inertia::render('equipment/index', [
+        return view('equipment.index', [
             'equipment' => $equipment,
             'categories' => $categories,
             'labs' => $labs,
@@ -76,7 +76,7 @@ class EquipmentController extends Controller
         // Check availability for next 30 days
         $availability = $this->getEquipmentAvailability($equipment, 30);
 
-        return Inertia::render('equipment/show', [
+        return view('equipment.show', [
             'equipment' => $equipment,
             'availability' => $availability
         ]);
